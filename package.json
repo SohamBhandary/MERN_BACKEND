@@ -1,0 +1,27 @@
+{
+  "name": "mern_backend",
+  "version": "1.0.0",
+  "description": "mernbackend",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SohamBhandary/MERN_BACKEND.git"
+  },
+  "keywords": [
+    "javascript",
+    "backend"
+  ],
+  "author": "sohambhandary",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SohamBhandary/MERN_BACKEND/issues"
+  },
+  "homepage": "https://github.com/SohamBhandary/MERN_BACKEND#readme",
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
