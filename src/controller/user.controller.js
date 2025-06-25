@@ -22,17 +22,23 @@ if([fullname,email,userName,password].some((field)=>{field?.trim()===""})){
   throw new ApiError(400,"All fields are required")
 
 }
- const exisistedUSer=  User.findOne({ $or:[{ userName },{ email }]})
+ const exisistedUSer= await User.findOne({ $or:[{ userName },{ email }]})
  if(exisistedUSer){
   throw new ApiError(409,"User with email or username alreay exsists")
  }
 const avatarLocalPath= req.files?.avatar[0]?.path;
-const converImageLocalPath=req.files?.coverImage[0]?.path;
+// const converImageLocalPath=req.files?.coverImage[0]?.path;
+let converImageLocalPath;
+if(req.files && Array.isArray(req.files.coverImage)&& req.files.coverImage>0){
+  converImageLocalPath=req.files.coverImage[0].path
+
+}
 if(!avatarLocalPath){
   throw new ApiError(400,"Avtar file is required");
 }
 const avatar=await uploadOnCloudinary(avatarLocalPath)
 const coverImage= await uploadOnCloudinary(converImageLocalPath)
+
 if(!avatar){
   throw new ApiError(400,"Avatar file is required")
 }
@@ -42,7 +48,7 @@ const user=await User.create({fullname,
   coverImage:coverImage?.url||"",
   email,
   password,
-  userName:toLowerCase()
+  userName:userName.toLowerCase()
 })
 const createdUser=await User.findById(user._id).select(
   "-password -refreshToken"
