@@ -118,9 +118,24 @@ return res.status(200).cookie("accessToken",accesToken,options).cookie("refreshT
 },"User logged in Succesfully"))
 
 
-
-
+const logoutUser=asyncHandler(asyncHandler(async(req,res)=>{
+User.findByIdAndUpdate(
+  req.user._id,{
+    $set:{
+      refreshToken:undefined
+    }
+  },{
+    new:true
+  }
+)
+const options={
+  httpOnly:true,
+  secure:true
+}
+return res.status(200).clearCookie("accesToken",options).clearCookie("refreshToken",options).json(new ApiResponse(200,{},"User logged out"))
+}))
 
 })
 
-export{registerUser,loginUser}
+
+export{registerUser,loginUser,logoutUser}
