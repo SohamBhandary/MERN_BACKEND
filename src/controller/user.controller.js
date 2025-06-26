@@ -4,6 +4,20 @@ import {User } from "../models/user.model.js"
 import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 
+const generateAccesAndRefreshTokens=async(userId)=>{
+  try {
+   const user= await User.findById(userId)
+  const accesToken= user.generateAccesToken()
+  const  refreshToken=user.refreshAccesToken()
+  user.refreshAccesToken=refreshToken
+ await user.save({validateBeforeSave:false})
+ return {accesToken,refreshToken}
+    
+  } catch (error) {
+    throw new ApiError(500,"Something went wrong while generating refreshand acces token")
+    
+  }
+}
 
 const registerUser=asyncHandler(async(req,res)=>{
     //get details of user from frontend
@@ -65,4 +79,48 @@ return res.status(201).json(
 
 })
 
-export default registerUser;
+const loginUser=asyncHandler(async(req,res)=>{
+  //req body->data
+  //userName or email
+  //find the user
+  //check password
+  //access and refresh token
+  //send cookie
+  const{email,userName,password}=req.body
+
+  if (!username|| !email) {
+    throw new ApiError(400,"Username or email is required");
+    
+    
+  }
+ const user=await User.findOne({
+    $or:[{userName},{email}]
+  })
+  if(!user){
+    throw new ApiError(404,"User does not exisst")
+  }
+
+  const isPasswordValid=await user.isPasswordCorrect(password)
+  
+   if(!isPasswordValid){
+    throw new ApiError(401,"Invalid user credentials")
+  }
+ const {accesToken,refreshToken}=await generateAccesAndRefreshTokens(user._id)
+const loggedInUser= User.findById(user._id).select("-password -refreshToken")
+
+const options={
+  httpOnly:true,
+  secure:true
+}
+return res.status(200).cookie("accessToken",accesToken,options).cookie("refreshToken",refreshToken)
+.json(new ApiError(200,{
+  user:loggedInUser,accesToken,refreshToken
+},"User logged in Succesfully"))
+
+
+
+
+
+})
+
+export{registerUser,loginUser}
