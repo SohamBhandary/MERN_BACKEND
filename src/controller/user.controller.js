@@ -233,7 +233,61 @@ const updateUserCoverImage= asyncHandler(async(req,res)=>{
   return res.status(200).json(new ApiResponse(200,user,"CoverImage updated"))
 
 })
+const getUserChannelProfile=asyncHandler(async(req,res)=>{
+
+ const {username}= req.params
+ if(!username?.trim()){
+  throw new ApiError(400,"username is missing")
+ }
+ const channel=await User.aggregate([{$match:{username:username?.toLowerCase()}},{
+  $lookup:{
+    from:"subcriptions",
+    localField:_id,
+    foreignField:"channel",
+    as:"subcriber"
+  }
+ },{
+  $lookup:{
+    from:"subcriptions",
+    localField:_id,
+    foreignField:"subcriber",
+    as:"subcribedTo"
+  }
+
+ },
+{
+  $addFields:{
+    subcriberCount:{
+      $size:"$subcribers"
+    },
+    channelsSubcribedToCount:{
+      $size:"$subcribedTo"
+    },
+    isSubcribed:{
+      $cond:{if:{$in:[req.user?._id,"$subcribers.subcriber"]
+
+      },then:true,
+    else:true}
+    }
+
+
+  },
+  $project:{
+    fullname:1,
+    username:1,
+    subcriberCount:1,
+    channelsSubcribedToCount:1,
+    isSubcribed:1,
+    avatar:1,
+    coverImage:1,
+    email:1
+  }
+}])
+if(!channel?.length){
+  throw new ApiError(404,"channel does not exsists")
+}
+})
 
 
 // 📦 Export
-export { registerUser, loginUser, logoutUser ,refreshAccessToken,changeCurrentPassword,getCurrentUser,updateAccountDetails,updateUserAvatar,updateUserCoverImage};
+export { registerUser, loginUser, logoutUser ,refreshAccessToken,changeCurrentPassword,getCurrentUser,updateAccountDetails,updateUserAvatar,updateUserCoverImage,getUserChannelProfile};
